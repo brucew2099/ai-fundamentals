@@ -17,8 +17,13 @@ def get_intent(luis_app_id, cog_key, cog_endpoint, command):
         }
 
         # Call the LUIS app and get the prediction
-        response = requests.get(cog_endpoint + '/luis/prediction/v3.0/apps/'+ luis_app_id + '/slots/production/predict',
-                                headers=headers, params=params)
+        response = requests.get(
+            f'{cog_endpoint}/luis/prediction/v3.0/apps/{luis_app_id}'
+            + '/slots/production/predict',
+            headers=headers,
+            params=params,
+        )
+
         data = response.json()
 
         # Get the most probable intent
@@ -34,7 +39,7 @@ def get_intent(luis_app_id, cog_key, cog_endpoint, command):
                 print('- predicted entity:',device)
 
                 # Set the action to intent_device
-                action = intent + '_' +  device
+                action = f'{intent}_{device}'
 
         return action
 

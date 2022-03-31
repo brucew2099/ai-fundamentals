@@ -30,13 +30,12 @@ def get_form_data(key, endpoint, form_data):
     n_try = 0
     wait_sec = 2
     complete = False
-    while n_try < n_tries and complete != True:
+    while n_try < n_tries and not complete:
         # get the response
         resp = get(url = get_url, headers = {"Ocp-Apim-Subscription-Key": key})
         resp_json = json.loads(resp.text)
         if resp.status_code != 200:
             raise ValueError('Failed to process results')
-            complete = True
         status = resp_json["status"]
         if status == "succeeded":
             print('Results retrieved...')
@@ -48,19 +47,16 @@ def get_form_data(key, endpoint, form_data):
                 if fieldType != 'array':
                     # This has a single value, so work out the name and data type
                     fieldTypeString = fieldType[0].capitalize() + fieldType[1:]
-                    valueField = 'value' + fieldTypeString
+                    valueField = f'value{fieldTypeString}'
                     results[field] = fields[field][valueField]
-                else:
-                    # This is an array - is it Items?
-                    if field == "Items":
-                        # Items are line-items in the receipt, get the name and price for each
-                        items = fields[field]
-                        for item in items["valueArray"]:
-                            results[item["valueObject"]["Name"]["valueString"]] = item["valueObject"]["TotalPrice"]["valueNumber"]
+                elif field == "Items":
+                    # Items are line-items in the receipt, get the name and price for each
+                    items = fields[field]
+                    for item in items["valueArray"]:
+                        results[item["valueObject"]["Name"]["valueString"]] = item["valueObject"]["TotalPrice"]["valueNumber"]
             complete = True
         if status == "failed":
             raise ValueError('Failed to process results')
-            complete = True
         # Analysis still running. Wait and retry.
         time.sleep(wait_sec)
         n_try += 1
